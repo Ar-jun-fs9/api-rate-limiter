@@ -10,13 +10,47 @@ This project implements rate limiting at the API level with:
 - **Redis Backend**: Uses Upstash Redis for fast, distributed rate tracking
 - **Response Headers**: Returns `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers
 
-![401error1](assets/401error1.png)
-![200OK2](assets/200OK2.png)
-![count3](assets/count3.png)
-![0count4](assets/0count4.png)
-![429error5](assets/429error5.png)
-![JSON4296](assets/JSON4296.png)
-![redis7](assets/redis7.png)
+## API Rate Limiter Screenshots
+
+The following images show the API rate limiter in action, from initial requests to rate limiting responses.
+
+### Step 1: Unauthorized Request (Missing API Key)
+
+- A request without an API key returns **401 Unauthorized**:
+
+| ![401error1](assets/401error1.png) | ![200OK2](assets/200OK2.png) |
+|-----------------------------------|--------------------------------|
+| Unauthorized (401)                | Successful request (200 OK)   |
+
+---
+
+### Step 2: Request Counting
+
+- Requests increment the Redis counter. You can see the live counts for each API key:
+
+| ![count3](assets/count3.png) | ![0count4](assets/0count4.png) |
+|-------------------------------|-------------------------------|
+| Counter at 3 requests          | Counter reset to 0            |
+
+---
+
+### Step 3: Rate Limit Exceeded
+
+- When the limit is reached, the API returns **429 Too Many Requests**:
+
+| ![429error5](assets/429error5.png) | ![JSON4296](assets/JSON4296.png) |
+|-----------------------------------|----------------------------------|
+| Browser error view                | JSON response with 429           |
+
+---
+
+### Step 4: Redis Backend Monitoring
+
+- Check the Redis keys in Upstash to verify rate limiting counters:
+
+| ![redis7](assets/redis7.png) |
+|-------------------------------|
+| Redis showing per-API-key counters |
 
 ## Architecture
 
@@ -290,6 +324,61 @@ X-RateLimit-Remaining: 9
 ```json
 {"detail": "Invalid API key"}
 ```
+
+# Testing API with Postman
+
+Follow these steps to test your API endpoint using Postman.
+
+1. **Create a new request in Postman**
+   - Set **method** to `GET`.
+   - Set **URL** to:
+     ```
+     http://localhost:8000/api/test/
+     ```
+
+2. **Add Headers**
+   | Key       | Value               |
+   |-----------|-------------------|
+   | X-API-Key | your-api-key-uuid |
+
+3. **Send the request**
+   - Click **Send**.
+   - Observe response and headers:
+     ```
+     X-RateLimit-Limit
+     X-RateLimit-Remaining
+     ```
+   - Repeat to test rate limiting.
+
+4. **Expected Responses**
+
+   - **Success**
+     ```json
+     {
+       "message": "Test API Success"
+     }
+     ```
+
+   - **Rate Limit Exceeded**
+     ```json
+     {
+       "detail": "Rate limit exceeded"
+     }
+     ```
+
+   - **Missing API Key**
+     ```json
+     {
+       "detail": "API key required"
+     }
+     ```
+
+   - **Invalid API Key**
+     ```json
+     {
+       "detail": "Invalid API key"
+     }
+     ```
 
 ### Test Script Example
 
