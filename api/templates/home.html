@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Rate Limiter Project</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #f4f6f8;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+      header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 30px 20px;
+        text-align: center;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+      }
+      header p {
+        font-size: 1.1rem;
+        margin-top: 10px;
+      }
+      main {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 0 20px;
+      }
+      section {
+        background-color: white;
+        padding: 25px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        color: #0d6efd;
+        margin-top: 0;
+      }
+      pre {
+        background-color: #f1f1f1;
+        padding: 10px;
+        border-radius: 5px;
+        overflow-x: auto;
+      }
+      code {
+        font-family: monospace;
+        color: #d63384;
+      }
+      .endpoint-card {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #fafafa;
+      }
+      .endpoint-card h4 {
+        margin-top: 0;
+        color: #0d6efd;
+      }
+      footer {
+        text-align: center;
+        padding: 20px;
+        font-size: 0.9rem;
+        color: #555;
+      }
+      a {
+        color: #0d6efd;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Welcome to API Rate Limiter Project</h1>
+      <p>
+        Test and manage API requests with per-key and per-endpoint rate limits.
+      </p>
+    </header>
+    <main>
+      <section>
+        <h2>About This Project</h2>
+        <p>
+          This project is built with Django and Django REST Framework. It
+          provides a customizable API rate limiting system where each API key
+          and endpoint can have its own limits. Redis is used as a fast,
+          distributed backend to track requests.
+        </p>
+      </section>
+
+      <section>
+        <h2>How It Works</h2>
+        <ol>
+          <li>
+            Every API request must include a valid
+            <code>X-API-Key</code> header.
+          </li>
+          <li>Redis tracks the number of requests per key per endpoint.</li>
+          <li>
+            Requests exceeding the limit return a
+            <code>429 Too Many Requests</code> error.
+          </li>
+          <li>
+            API responds with headers: <code>X-RateLimit-Limit</code> and
+            <code>X-RateLimit-Remaining</code> for monitoring.
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>How to Test</h2>
+        <p>
+          You can test the API using <strong>Postman</strong>,
+          <strong>cURL</strong>, or any HTTP client.
+        </p>
+      </section>
+
+      <section>
+        <h2>Try the API</h2>
+        <p>
+          You can test the API on your local machine or on the deployed Render
+          server.
+        </p>
+
+        <div class="endpoint-card">
+          <h4>Localhost</h4>
+          <p>URL: <code>http://127.0.0.1:8000/api/test/</code></p>
+          <p>Example using cURL:</p>
+          <pre><code>curl -H "X-API-Key: YOUR_API_KEY" http://127.0.0.1:8000/api/test/</code></pre>
+        </div>
+
+        <div class="endpoint-card">
+          <h4>Deployed on Render</h4>
+          <p>
+            URL:
+            <a
+              href="https://api-rate-limiter-lo1o.onrender.com/api/test/"
+              target="_blank"
+              >https://api-rate-limiter-lo1o.onrender.com/api/test/</a
+            >
+          </p>
+          <p>Example using cURL:</p>
+          <pre><code>curl -H "X-API-Key: YOUR_API_KEY" https://api-rate-limiter-lo1o.onrender.com/api/test/</code></pre>
+        </div>
+
+        <p>
+          Replace <code>YOUR_API_KEY</code> with a valid API key created in
+          Django admin.
+        </p>
+      </section>
+
+      <section>
+        <h2>Project Endpoints</h2>
+        <ul>
+          <li><code>/api/test/</code> - Test endpoint (10 req/min)</li>
+          <li><code>/api/hello/</code> - Hello endpoint (10 req/min)</li>
+          <li><code>/api/profile/</code> - Profile endpoint (10 req/min)</li>
+          <li><code>/api/login/</code> - Login endpoint (20 req/min)</li>
+          <li><code>/api/purchase/</code> - Purchase endpoint (15 req/min)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Notes</h2>
+        <p>
+          Make sure your <code>REDIS_URL</code> and API keys are configured
+          correctly for both local and deployed environments.
+        </p>
+      </section>
+    </main>
+
+    <footer>&copy; 2026 API Rate Limiter Project. Built By A.B.</footer>
+  </body>
+</html>

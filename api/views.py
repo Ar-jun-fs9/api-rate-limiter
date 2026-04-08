@@ -1,6 +1,12 @@
+
+from django.views import View
+from django.shortcuts import render
 from .rate_limit import RateLimitedAPIView, RateLimited10APIView
 
 
+class Home(View):
+    def get(self, request):
+        return render(request, 'home.html', context={})
 
 class TestAPIView(RateLimited10APIView):
     def get(self, request):
