@@ -1,14 +1,30 @@
+<div align="center">
+
 # API Rate Limiter
 
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
+[![Django](https://img.shields.io/badge/Django-Web%20Framework-green.svg)](https://www.djangoproject.com/)
+[![Django REST Framework](https://img.shields.io/badge/DRF-REST%20Framework-blueviolet.svg)](https://www.django-rest-framework.org/)
+[![Redis](https://img.shields.io/badge/Redis-Cache%20Backend-red.svg)](https://redis.io/)
+[![Upstash](https://img.shields.io/badge/Upstash-Redis%20Cloud-yellow.svg)](https://upstash.com)
+
 A Django REST framework-based API rate limiting system that enforces per-API-key and per-endpoint request limits using Redis (Upstash) for distributed rate tracking.
+
+</div>
 
 ## Overview
 
 This project implements rate limiting at the API level with:
+
 - **Per-API Key Limiting**: Each API key has its own request counter
 - **Per-Endpoint Limiting**: Different endpoints can have different rate limits
 - **Redis Backend**: Uses Upstash Redis for fast, distributed rate tracking
 - **Response Headers**: Returns `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers
+- **Landing Page**: `home.html` as project welcome page available at `/`
+
+You can check the project online at: [https://api-rate-limiter-lo1o.onrender.com/](https://api-rate-limiter-lo1o.onrender.com/)
+
+---
 
 ## API Rate Limiter Screenshots
 
@@ -396,12 +412,16 @@ done
 ## Dependencies
 
 ```
-Django==6.0.3           # Web framework
-djangorestframework==3.17.1  # REST API
-django-cors-headers==4.9.0   # CORS support
-django-redis==6.0.0    # Redis cache backend
-redis==7.4.0           # Redis client
-python-dotenv==1.2.2   # Environment variables
+Django==6.0.3
+djangorestframework==3.17.1
+django-cors-headers==4.9.0
+django-redis==6.0.0
+redis==7.4.0
+python-dotenv==1.2.2
+asgiref==3.11.1
+sqlparse==0.5.5
+tzdata==2026.1
+gunicorn==25.3.0
 ```
 
 ## Production Considerations
