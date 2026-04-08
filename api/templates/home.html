@@ -1,788 +1,1066 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>API Rate Limiter | Home</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+            },
+            colors: {
+              green: {
+                50: "#f0fdf4",
+                100: "#dcfce7",
+                200: "#bbf7d0",
+                300: "#86efac",
+                400: "#4ade80",
+                500: "#22c55e",
+                600: "#16a34a",
+                700: "#15803d",
+                800: "#166534",
+                900: "#14532d",
+              },
+              accent: "#0d9488",
+            },
+          },
+        },
+      };
+    </script>
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #818cf8;
-            --accent: #22d3ee;
-            --bg: #0f172a;
-            --bg-card: #1e293b;
-            --bg-card-hover: #334155;
-            --text: #f1f5f9;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
-        }
-
-        body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-
-        .bg-pattern {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
-                radial-gradient(ellipse 60% 40% at 100% 0%, rgba(34, 211, 238, 0.1), transparent);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        header {
-            position: relative;
-            padding: 60px 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 600px;
-            height: 300px;
-            background: radial-gradient(ellipse, rgba(99, 102, 241, 0.2), transparent 70%);
-            pointer-events: none;
-        }
-
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .logo-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
-        }
-
-        h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 12px;
-            background: linear-gradient(135deg, var(--text), var(--text-muted));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .tagline {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 24px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 28px;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            background: var(--bg-card-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .card-icon {
-            width: 44px;
-            height: 44px;
-            background: rgba(99, 102, 241, 0.15);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .feature-list {
-            list-style: none;
-            margin-top: 16px;
-        }
-
-        .feature-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
-        }
-
-        .feature-list li:last-child {
-            border-bottom: none;
-        }
-
-        .feature-list .check {
-            color: var(--success);
-            font-weight: 600;
-        }
-
-        .endpoints-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .endpoints-table th,
-        .endpoints-table td {
-            padding: 14px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .endpoints-table th {
-            font-weight: 600;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .endpoints-table td {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-        }
-
-        .endpoints-table tr:hover td {
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            background: rgba(99, 102, 241, 0.15);
-            color: var(--primary-light);
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            font-family: 'DM Sans', sans-serif;
-        }
-
-        .badge.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-        .badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
-        .badge.error { background: rgba(239, 68, 68, 0.15); color: var(--error); }
-
-        .env-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 28px;
-            margin-bottom: 32px;
-        }
-
-        .env-section h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .env-box {
-            background: #0d1117;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 18px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            overflow-x: auto;
-        }
-
-        .env-box .comment { color: #6e7681; }
-        .env-box .key { color: #79c0ff; }
-        .env-box .value { color: #a5d6ff; }
-
-        .section-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 28px;
-            background: linear-gradient(180deg, var(--primary), var(--accent));
-            border-radius: 2px;
-        }
-
-        .code-block {
-            background: #0d1117;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 12px 0;
-            overflow-x: auto;
-        }
-
-        .code-block code {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            color: #e6edf3;
-            white-space: pre;
-        }
-
-        .code-block .prompt { color: var(--success); }
-        .code-block .cmd { color: var(--primary-light); }
-        .code-block .flag { color: var(--warning); }
-
-        .test-steps {
-            counter-reset: step;
-        }
-
-        .test-step {
-            display: flex;
-            gap: 16px;
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .test-step:last-child {
-            border-bottom: none;
-        }
-
-        .step-num {
-            flex-shrink: 0;
-            width: 36px;
-            height: 36px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .step-content h4 {
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .step-content p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .tool-card {
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .tool-card .icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .tool-card h4 {
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .tool-card p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .url-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 10px;
-            padding: 14px 18px;
-            margin: 12px 0;
-        }
-
-        .url-box .icon {
-            color: var(--success);
-            font-size: 20px;
-        }
-
-        .url-box a {
-            color: var(--accent);
-            text-decoration: none;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            word-break: break-all;
-        }
-
-        .url-box a:hover {
-            text-decoration: underline;
-        }
-
-        .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border), transparent);
-            margin: 40px 0;
-        }
-
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            border-top: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--primary-light);
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            .tagline { font-size: 1rem; }
-            .container { padding: 24px 16px; }
-            .endpoints-table { font-size: 0.8rem; }
-            .endpoints-table th, .endpoints-table td { padding: 10px 8px; }
-        }
+      body {
+        font-family: "Inter", sans-serif;
+      }
     </style>
-</head>
-<body>
-    <div class="bg-pattern"></div>
+  </head>
+  <body class="font-inter bg-white text-gray-800">
+    <!-- Navigation Header -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16 sm:h-18">
+          <div class="flex items-center">
+            <div
+              class="w-10 h-10 bg-green-800 rounded-lg flex items-center justify-center shadow-md"
+            >
+              <i class="fas fa-stopwatch text-white text-lg"></i>
+            </div>
+            <div class="ml-3">
+              <h1 class="text-lg sm:text-xl font-bold text-green-800">
+                API Rate Limiter
+              </h1>
+              <p
+                class="text-[10px] sm:text-xs text-gray-500 hidden md:block tracking-wide"
+              >
+                Per-Key & Per-Endpoint Rate Limiting
+              </p>
+            </div>
+          </div>
 
-    <header>
-        <div class="logo">
-            <div class="logo-icon">⚡</div>
+          <div class="hidden lg:flex items-center space-x-10">
+            <a
+              href="#features"
+              class="text-sm font-medium text-gray-600 hover:text-green-800 transition-colors duration-200"
+            >
+              Features
+            </a>
+            <a
+              href="#endpoints"
+              class="text-sm font-medium text-gray-600 hover:text-green-800 transition-colors duration-200"
+            >
+              Endpoints
+            </a>
+            <a
+              href="#testing"
+              class="text-sm font-medium text-gray-600 hover:text-green-800 transition-colors duration-200"
+            >
+              Testing
+            </a>
+            <a
+              href="#usecases"
+              class="text-sm font-medium text-gray-600 hover:text-green-800 transition-colors duration-200"
+            >
+              Use Cases
+            </a>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <a
+              href="https://api-rate-limiter-lo1o.onrender.com/api/test/"
+              target="_blank"
+              class="text-green-700 hover:text-green-800 text-sm font-medium"
+            >
+              <i class="fas fa-external-link-alt mr-1"></i>Live Demo
+            </a>
+          </div>
         </div>
-        <h1>API Rate Limiter</h1>
-        <p class="tagline">A production-ready rate limiting system with per-key and per-endpoint controls powered by Django & Redis</p>
-    </header>
+      </div>
+    </nav>
 
-    <div class="container">
-        <section>
-            <h2 class="section-title">What is this project?</h2>
-            <div class="grid">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">🔑</div>
-                        <div class="card-title">Per-API Key Limits</div>
-                    </div>
-                    <p>Each API key has its own request quota. Generate multiple keys for different clients or use cases with individual rate limits.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">🎯</div>
-                        <div class="card-title">Per-Endpoint Limits</div>
-                    </div>
-                    <p>Different endpoints can enforce different rate limits. Sensitive endpoints like login can have stricter limits than read-only endpoints.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">⚡</div>
-                        <div class="card-title">Redis Powered</div>
-                    </div>
-                    <p>Uses Upstash Redis for blazing fast, distributed rate tracking. The sliding window counter ensures accurate throttling.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">📊</div>
-                        <div class="card-title">Response Headers</div>
-                    </div>
-                    <p>Every response includes X-RateLimit-Limit and X-RateLimit-Remaining headers so clients can track their quota.</p>
-                </div>
+    <!-- Hero Section -->
+    <section class="bg-white py-20 sm:py-28 lg:py-32 overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div class="text-center lg:text-left">
+            <div
+              class="inline-block px-4 py-1.5 bg-green-50 text-green-700 text-xs font-semibold tracking-wider uppercase rounded-full mb-6"
+            >
+              Production Ready
             </div>
-        </section>
-
-        <section>
-            <h2 class="section-title">Available Endpoints</h2>
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <table class="endpoints-table">
-                    <thead>
-                        <tr>
-                            <th>Endpoint</th>
-                            <th>Limit</th>
-                            <th>Method</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>/api/test/</td>
-                            <td><span class="badge">10/min</span></td>
-                            <td>GET</td>
-                            <td>General test endpoint</td>
-                        </tr>
-                        <tr>
-                            <td>/api/hello/</td>
-                            <td><span class="badge">10/min</span></td>
-                            <td>GET</td>
-                            <td>Simple hello response</td>
-                        </tr>
-                        <tr>
-                            <td>/api/profile/</td>
-                            <td><span class="badge">10/min</span></td>
-                            <td>GET</td>
-                            <td>Profile data endpoint</td>
-                        </tr>
-                        <tr>
-                            <td>/api/login/</td>
-                            <td><span class="badge warning">20/min</span></td>
-                            <td>GET</td>
-                            <td>Login simulation</td>
-                        </tr>
-                        <tr>
-                            <td>/api/purchase/</td>
-                            <td><span class="badge">15/min</span></td>
-                            <td>GET</td>
-                            <td>Purchase endpoint</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <div class="divider"></div>
-
-        <section>
-            <h2 class="section-title">Quick Start</h2>
-            <p style="color: var(--text-muted); margin-bottom: 24px;">Choose your deployment method below to get started:</p>
-            
-            <div class="grid">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">💻</div>
-                        <div class="card-title">Local Development</div>
-                    </div>
-                    <p>Run the API locally on your machine using Django's development server. Perfect for testing and development.</p>
-                    <ul class="feature-list">
-                        <li><span class="check">✓</span> Full control over debugging</li>
-                        <li><span class="check">✓</span> Test changes instantly</li>
-                        <li><span class="check">✓</span> Use local Redis or Upstash</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">☁️</div>
-                        <div class="card-title">Deployed (Render)</div>
-                    </div>
-                    <p>Access the live API deployed on Render. Share with teammates or integrate with external services without setup.</p>
-                    <ul class="feature-list">
-                        <li><span class="check">✓</span> Instant access via URL</li>
-                        <li><span class="check">✓</span> No local setup required</li>
-                        <li><span class="check">✓</span> Production-ready infrastructure</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <section>
-            <h2 class="section-title">Testing the API</h2>
-            
-            <div class="grid" style="margin-bottom: 32px;">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">🔗</div>
-                        <div class="card-title">Live Demo URL</div>
-                    </div>
-                    <div class="url-box">
-                        <span class="icon">🌐</span>
-                        <a href="https://api-rate-limiter-lo1o.onrender.com/api/test/" target="_blank">https://api-rate-limiter-lo1o.onrender.com/api/test/</a>
-                    </div>
-                    <p style="margin-top: 12px;">Click the link above or use the URL in your API client. Make sure to include your API key in the request header.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">🏠</div>
-                        <div class="card-title">Local URL</div>
-                    </div>
-                    <div class="url-box" style="background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3);">
-                        <span class="icon" style="color: var(--primary-light);">📍</span>
-                        <a href="http://127.0.0.1:8000/api/test/" target="_blank">http://127.0.0.1:8000/api/test/</a>
-                    </div>
-                    <p style="margin-top: 12px;">Run <code style="color: var(--primary-light);">python manage.py runserver</code> and access the API locally.</p>
-                </div>
+            <h1
+              class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6"
+            >
+              API Rate <span class="text-green-700">Limiter</span>
+            </h1>
+            <p
+              class="text-lg sm:text-xl text-gray-600 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed"
+            >
+              A production-ready rate limiting system with per-key and
+              per-endpoint controls. Built with Django and Redis for fast,
+              distributed throttling.
+            </p>
+            <div
+              class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+            >
+              <a
+                href="#testing"
+                class="bg-green-800 text-white px-8 py-3.5 rounded-lg font-medium hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <i class="fas fa-rocket mr-2"></i>
+                Test API
+              </a>
+              <a
+                href="#setup"
+                class="border-2 border-green-800 text-green-800 px-8 py-3.5 rounded-lg font-medium hover:bg-green-50 transition-all duration-200"
+              >
+                <i class="fas fa-code mr-2"></i>
+                Local Setup
+              </a>
             </div>
 
-            <div class="env-section">
-                <h3>📋 Using Postman</h3>
-                <div class="test-steps">
-                    <div class="test-step">
-                        <div class="step-num">1</div>
-                        <div class="step-content">
-                            <h4>Create a New Request</h4>
-                            <p>Open Postman, click "New" and select "HTTP Request". Choose GET method.</p>
-                        </div>
+            <div
+              class="mt-12 flex flex-wrap items-center justify-center lg:justify-start gap-6"
+            >
+              <div class="text-center">
+                <div class="text-3xl font-bold text-green-800">5</div>
+                <div class="text-sm text-gray-500">Endpoints</div>
+              </div>
+              <div class="w-px h-12 bg-gray-200"></div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-green-800">10-20</div>
+                <div class="text-sm text-gray-500">req/min</div>
+              </div>
+              <div class="w-px h-12 bg-gray-200"></div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-green-800">Redis</div>
+                <div class="text-sm text-gray-500">Backend</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative hidden lg:block">
+            <div
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-green-100 rounded-full"
+            ></div>
+            <div
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-green-200/30 rounded-full"
+            ></div>
+            <div class="relative bg-green-800 rounded-2xl p-8 shadow-2xl">
+              <div class="space-y-6">
+                <div class="flex items-center space-x-4">
+                  <div
+                    class="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center"
+                  >
+                    <i class="fas fa-key text-white text-2xl"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold text-lg">
+                      Per-API Key
                     </div>
-                    <div class="test-step">
-                        <div class="step-num">2</div>
-                        <div class="step-content">
-                            <h4>Enter the URL</h4>
-                            <p>Local: <code style="color: var(--accent);">http://127.0.0.1:8000/api/test/</code><br>
-                            Render: <code style="color: var(--accent);">https://api-rate-limiter-lo1o.onrender.com/api/test/</code></p>
-                        </div>
+                    <div class="text-gray-400 text-sm">
+                      Each client gets own quota
                     </div>
-                    <div class="test-step">
-                        <div class="step-num">3</div>
-                        <div class="step-content">
-                            <h4>Add the API Key Header</h4>
-                            <p>Go to Headers tab, add:</p>
-                            <div class="code-block" style="margin-top: 8px;">
-                                <code>Key: X-API-Key
-Value: YOUR_API_KEY_UUID</code>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="test-step">
-                        <div class="step-num">4</div>
-                        <div class="step-content">
-                            <h4>Send & Verify</h4>
-                            <p>Click Send. Check the response headers for <code style="color: var(--warning);">X-RateLimit-Limit</code> and <code style="color: var(--warning);">X-RateLimit-Remaining</code>. Make 10+ requests to trigger rate limiting.</p>
-                        </div>
-                    </div>
+                  </div>
                 </div>
+                <div class="flex items-center space-x-4">
+                  <div
+                    class="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center"
+                  >
+                    <i class="fas fa-bullseye text-white text-2xl"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold text-lg">
+                      Per-Endpoint
+                    </div>
+                    <div class="text-gray-400 text-sm">
+                      Different limits per route
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                  <div
+                    class="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center"
+                  >
+                    <i class="fas fa-bolt text-white text-2xl"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold text-lg">
+                      Redis Powered
+                    </div>
+                    <div class="text-gray-400 text-sm">
+                      Fast distributed tracking
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Key Features
+          </h2>
+          <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Everything you need to control API usage and prevent abuse
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <div
+            class="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+          >
+            <div
+              class="w-14 h-14 bg-green-800 rounded-xl flex items-center justify-center mb-5"
+            >
+              <i class="fas fa-key text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-900">
+              Per-API Key Limits
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Each API key has its own request quota. Generate multiple keys for
+              different clients with individual rate limits.
+            </p>
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+          >
+            <div
+              class="w-14 h-14 bg-green-700 rounded-xl flex items-center justify-center mb-5"
+            >
+              <i class="fas fa-bullseye text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-900">
+              Per-Endpoint Limits
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Different endpoints can have different rate limits. Sensitive
+              endpoints like login can have stricter controls.
+            </p>
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+          >
+            <div
+              class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mb-5"
+            >
+              <i class="fas fa-server text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-900">
+              Redis Backend
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Uses Upstash Redis for blazing fast, distributed rate tracking.
+              Accurate counter with 60-second window.
+            </p>
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+          >
+            <div
+              class="w-14 h-14 bg-green-800 rounded-xl flex items-center justify-center mb-5"
+            >
+              <i class="fas fa-chart-line text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-900">
+              Response Headers
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Every response includes X-RateLimit-Limit and
+              X-RateLimit-Remaining headers for quota monitoring.
+            </p>
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+          >
+            <div
+              class="w-14 h-14 bg-green-700 rounded-xl flex items-center justify-center mb-5"
+            >
+              <i class="fas fa-shield-alt text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-900">
+              401 & 429 Errors
+            </h3>
+            <p class="text-gray-600 leading-relaxed">
+              Proper HTTP status codes: 401 for auth failures, 429 when rate
+              limit exceeded.
+            </p>
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+          >
+            <div
+              class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mb-5"
+            >
+              <i class="fas fa-clock text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-3 text-gray-900">60s Window</h3>
+            <p class="text-gray-600 leading-relaxed">
+              Sliding window counter resets every 60 seconds. Automatic quota
+              restoration.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Endpoints Section -->
+    <section id="endpoints" class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Available Endpoints
+          </h2>
+          <p class="text-lg text-gray-600">
+            All endpoints support GET requests with rate limiting
+          </p>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden"
+        >
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-green-50">
+                <tr>
+                  <th
+                    class="px-6 py-4 text-left text-sm font-semibold text-green-800"
+                  >
+                    Endpoint
+                  </th>
+                  <th
+                    class="px-6 py-4 text-left text-sm font-semibold text-green-800"
+                  >
+                    Limit
+                  </th>
+                  <th
+                    class="px-6 py-4 text-left text-sm font-semibold text-green-800"
+                  >
+                    Method
+                  </th>
+                  <th
+                    class="px-6 py-4 text-left text-sm font-semibold text-green-800"
+                  >
+                    Description
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-mono text-sm text-green-700">
+                    /api/test/
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
+                      >10/min</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">GET</td>
+                  <td class="px-6 py-4 text-gray-600">General test endpoint</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-mono text-sm text-green-700">
+                    /api/hello/
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
+                      >10/min</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">GET</td>
+                  <td class="px-6 py-4 text-gray-600">Simple hello response</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-mono text-sm text-green-700">
+                    /api/profile/
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
+                      >10/min</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">GET</td>
+                  <td class="px-6 py-4 text-gray-600">Profile data endpoint</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-mono text-sm text-green-700">
+                    /api/login/
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full"
+                      >20/min</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">GET</td>
+                  <td class="px-6 py-4 text-gray-600">
+                    Login simulation (higher limit)
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-mono text-sm text-green-700">
+                    /api/purchase/
+                  </td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
+                      >15/min</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">GET</td>
+                  <td class="px-6 py-4 text-gray-600">Purchase endpoint</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testing Section -->
+    <section id="testing" class="py-20 bg-green-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Testing the API
+          </h2>
+          <p class="text-lg text-gray-600">
+            Quick start for both local and deployed versions
+          </p>
+        </div>
+
+        <!-- Quick URLs -->
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div class="flex items-center mb-4">
+              <div
+                class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3"
+              >
+                <i class="fas fa-globe text-green-700"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                Live Demo (Render)
+              </h3>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 mb-4">
+              <code class="text-green-400 text-sm"
+                >https://api-rate-limiter-lo1o.onrender.com/api/test/</code
+              >
+            </div>
+            <a
+              href="https://api-rate-limiter-lo1o.onrender.com/"
+              target="_blank"
+              class="inline-flex items-center text-green-700 font-medium hover:text-green-800"
+            >
+              <i class="fas fa-external-link-alt mr-2"></i>Open Landing Page
+            </a>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div class="flex items-center mb-4">
+              <div
+                class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3"
+              >
+                <i class="fas fa-home text-blue-700"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                Local Development
+              </h3>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 mb-4">
+              <code class="text-green-400 text-sm"
+                >http://127.0.0.1:8000/api/test/</code
+              >
+            </div>
+            <p class="text-gray-500 text-sm">
+              Run
+              <code class="bg-gray-100 px-1 py-0.5 rounded"
+                >python manage.py runserver</code
+              >
+              first
+            </p>
+          </div>
+        </div>
+
+        <!-- Postman Guide -->
+        <div
+          class="bg-white rounded-xl p-8 shadow-sm border border-gray-100 mb-8"
+        >
+          <h3 class="text-xl font-semibold mb-6 text-gray-900">
+            <i class="fas fa-plane-departure text-green-700 mr-2"></i>
+            Using Postman
+          </h3>
+          <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="text-center">
+              <div
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"
+              >
+                <span class="text-green-700 font-bold">1</span>
+              </div>
+              <h4 class="font-medium text-gray-900 mb-2">New Request</h4>
+              <p class="text-gray-500 text-sm">Create GET request in Postman</p>
+            </div>
+            <div class="text-center">
+              <div
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"
+              >
+                <span class="text-green-700 font-bold">2</span>
+              </div>
+              <h4 class="font-medium text-gray-900 mb-2">Enter URL</h4>
+              <p class="text-gray-500 text-sm">Local or Render endpoint</p>
+            </div>
+            <div class="text-center">
+              <div
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"
+              >
+                <span class="text-green-700 font-bold">3</span>
+              </div>
+              <h4 class="font-medium text-gray-900 mb-2">Add Header</h4>
+              <p class="text-gray-500 text-sm">X-API-Key: YOUR_KEY</p>
+            </div>
+            <div class="text-center">
+              <div
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"
+              >
+                <span class="text-green-700 font-bold">4</span>
+              </div>
+              <h4 class="font-medium text-gray-900 mb-2">Send & Verify</h4>
+              <p class="text-gray-500 text-sm">Check response headers</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- cURL Examples -->
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h4 class="font-semibold text-gray-900 mb-4">
+              <i class="fas fa-terminal text-green-700 mr-2"></i>cURL - Local
+            </h4>
+            <div class="bg-gray-900 rounded-lg p-4 mb-4">
+              <pre
+                class="text-green-400 text-xs overflow-x-auto"
+              ><code>curl -H "X-API-Key: YOUR_KEY" \
+  http://127.0.0.1:8000/api/test/</code></pre>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4">
+              <pre
+                class="text-green-400 text-xs overflow-x-auto"
+              ><code># With headers
+curl -i -H "X-API-Key: YOUR_KEY" \
+  http://127.0.0.1:8000/api/test/</code></pre>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h4 class="font-semibold text-gray-900 mb-4">
+              <i class="fas fa-cloud text-green-700 mr-2"></i>cURL - Render
+            </h4>
+            <div class="bg-gray-900 rounded-lg p-4 mb-4">
+              <pre
+                class="text-green-400 text-xs overflow-x-auto"
+              ><code>curl -H "X-API-Key: YOUR_KEY" \
+  https://api-rate-limiter-lo1o.onrender.com/api/test/</code></pre>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4">
+              <pre
+                class="text-green-400 text-xs overflow-x-auto"
+              ><code># Test rate limit
+for i in {1..12}; do curl -s \
+  -H "X-API-Key: YOUR_KEY" \
+  https://api-rate-limiter-lo1o.onrender.com/api/test/; done</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Manual Verification Section -->
+    <section class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Manual Verification
+          </h2>
+          <p class="text-lg text-gray-600">
+            How to verify rate limiting is working correctly
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div
+            class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+          >
+            <div
+              class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-times-circle text-red-600 text-xl"></i>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Without API Key</h4>
+            <p class="text-gray-500 text-sm mb-3">
+              Send request without X-API-Key header
+            </p>
+            <span
+              class="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full"
+              >Expected: 401</span
+            >
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+          >
+            <div
+              class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-ban text-red-600 text-xl"></i>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Invalid API Key</h4>
+            <p class="text-gray-500 text-sm mb-3">
+              Send request with fake UUID
+            </p>
+            <span
+              class="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full"
+              >Expected: 401</span
+            >
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+          >
+            <div
+              class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Valid Request</h4>
+            <p class="text-gray-500 text-sm mb-3">With valid key under limit</p>
+            <span
+              class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
+              >Expected: 200 + Headers</span
+            >
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+          >
+            <div
+              class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4"
+            >
+              <i class="fas fa-exclamation-triangle text-amber-600 text-xl"></i>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-2">Over Limit</h4>
+            <p class="text-gray-500 text-sm mb-3">Make 10+ requests quickly</p>
+            <span
+              class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full"
+              >Expected: 429</span
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section id="usecases" class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Use Cases
+          </h2>
+          <p class="text-lg text-gray-600">
+            Real-world scenarios where this rate limiter shines
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group overflow-hidden"
+          >
+            <div class="h-40 bg-green-50 flex items-center justify-center">
+              <i class="fas fa-building text-green-800 text-4xl"></i>
+            </div>
+            <div class="p-6">
+              <h3
+                class="text-xl font-semibold mb-3 text-gray-900 group-hover:text-green-700 transition-colors"
+              >
+                SaaS Applications
+              </h3>
+              <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                Control API usage for different subscription tiers. Free tier
+                gets 100 req/min, Pro gets 1000 req/min, Enterprise gets
+                unlimited.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group overflow-hidden"
+          >
+            <div class="h-40 bg-green-50 flex items-center justify-center">
+              <i class="fas fa-robot text-green-800 text-4xl"></i>
+            </div>
+            <div class="p-6">
+              <h3
+                class="text-xl font-semibold mb-3 text-gray-900 group-hover:text-green-700 transition-colors"
+              >
+                Bot Protection
+              </h3>
+              <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                Prevent aggressive scraping or bot abuse by limiting request
+                rates per client. Protects your backend from overload.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group overflow-hidden"
+          >
+            <div class="h-40 bg-green-50 flex items-center justify-center">
+              <i class="fas fa-mobile-alt text-green-800 text-4xl"></i>
+            </div>
+            <div class="p-6">
+              <h3
+                class="text-xl font-semibold mb-3 text-gray-900 group-hover:text-green-700 transition-colors"
+              >
+                Mobile Apps
+              </h3>
+              <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                Throttle API calls from iOS/Android clients. Track per-device
+                usage with unique API keys.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group overflow-hidden"
+          >
+            <div class="h-40 bg-green-50 flex items-center justify-center">
+              <i class="fas fa-plug text-green-800 text-4xl"></i>
+            </div>
+            <div class="p-6">
+              <h3
+                class="text-xl font-semibold mb-3 text-gray-900 group-hover:text-green-700 transition-colors"
+              >
+                Third-Party Integrations
+              </h3>
+              <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                Give external partners limited API access with custom rate
+                limits. Revoke keys instantly if abuse is detected.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group overflow-hidden"
+          >
+            <div class="h-40 bg-green-50 flex items-center justify-center">
+              <i class="fas fa-flask text-green-800 text-4xl"></i>
+            </div>
+            <div class="p-6">
+              <h3
+                class="text-xl font-semibold mb-3 text-gray-900 group-hover:text-green-700 transition-colors"
+              >
+                Testing & Development
+              </h3>
+              <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                Simulate production rate limiting in staging. Test how your
+                client handles 429 responses and header parsing.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group overflow-hidden"
+          >
+            <div class="h-40 bg-green-50 flex items-center justify-center">
+              <i class="fas fa-coins text-green-800 text-4xl"></i>
+            </div>
+            <div class="p-6">
+              <h3
+                class="text-xl font-semibold mb-3 text-gray-900 group-hover:text-green-700 transition-colors"
+              >
+                API Monetization
+              </h3>
+              <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                Offer paid API access with tiered rate limits. Charge based on
+                allowed requests per minute.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Setup Section -->
+    <section id="setup" class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Local Setup
+          </h2>
+          <p class="text-lg text-gray-600">
+            Get the project running on your machine
+          </p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">
+              Quick Start Guide
+            </h3>
+            <div class="space-y-4">
+              <div class="flex items-start p-5 bg-green-50 rounded-lg">
+                <div
+                  class="w-10 h-10 bg-green-800 rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-white font-semibold"
+                >
+                  1
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">Clone & Setup</h4>
+                  <p class="text-gray-500 text-sm mt-1">
+                    git clone, create venv, pip install
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start p-5 bg-green-50 rounded-lg">
+                <div
+                  class="w-10 h-10 bg-green-800 rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-white font-semibold"
+                >
+                  2
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">Configure Redis</h4>
+                  <p class="text-gray-500 text-sm mt-1">
+                    Get REDIS_URL from Upstash, add to .env
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start p-5 bg-green-50 rounded-lg">
+                <div
+                  class="w-10 h-10 bg-green-800 rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-white font-semibold"
+                >
+                  3
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">Run Migrations</h4>
+                  <p class="text-gray-500 text-sm mt-1">
+                    python manage.py migrate
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start p-5 bg-green-50 rounded-lg">
+                <div
+                  class="w-10 h-10 bg-green-800 rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-white font-semibold"
+                >
+                  4
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">Create API Key</h4>
+                  <p class="text-gray-500 text-sm mt-1">
+                    createsuperuser, go to admin, create key
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start p-5 bg-green-50 rounded-lg">
+                <div
+                  class="w-10 h-10 bg-green-800 rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-white font-semibold"
+                >
+                  5
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">Start Server</h4>
+                  <p class="text-gray-500 text-sm mt-1">
+                    python manage.py runserver
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl p-8 shadow-lg border border-gray-100">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">
+              Environment Variables
+            </h3>
+            <div class="bg-gray-900 rounded-lg p-5 mb-6">
+              <pre
+                class="text-green-400 text-sm overflow-x-auto"
+              ><code># .env file
+REDIS_URL="rediss://default:password@your-instance.upstash.io:6379"</code></pre>
             </div>
 
-            <div class="env-section">
-                <h3>💻 Using cURL</h3>
-                <p style="color: var(--text-muted); margin-bottom: 16px;">Open your terminal and run these commands:</p>
-                
-                <div class="code-block">
-                    <code><span class="prompt">$</span> <span class="cmd">curl</span> <span class="flag">-H</span> <span class="value">"X-API-Key: YOUR_API_KEY"</span> <span class="value">http://127.0.0.1:8000/api/test/</span></code>
-                </div>
-                
-                <p style="color: var(--text-muted); margin: 20px 0 12px;">Check response headers:</p>
-                <div class="code-block">
-                    <code><span class="prompt">$</span> <span class="cmd">curl</span> <span class="flag">-i</span> <span class="flag">-H</span> <span class="value">"X-API-Key: YOUR_API_KEY"</span> <span class="value">http://127.0.0.1:8000/api/test/</span></code>
-                </div>
-                
-                <p style="color: var(--text-muted); margin: 20px 0 12px;">Test rate limiting (make 12 requests):</p>
-                <div class="code-block">
-                    <code><span class="prompt">$</span> <span class="cmd">for</span> i in {1..12}; do <span class="cmd">curl</span> <span class="flag">-s</span> <span class="flag">-H</span> <span class="value">"X-API-Key: YOUR_API_KEY"</span> <span class="value">http://127.0.0.1:8000/api/test/</span>; <span class="cmd">echo</span>; <span class="cmd">done</span></code>
-                </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Get REDIS_URL</h3>
+            <p class="text-gray-600 text-sm mb-4">
+              Create free account at
+              <a
+                href="https://upstash.com"
+                target="_blank"
+                class="text-green-700 font-medium hover:underline"
+                >upstash.com</a
+              >
+              and create a Redis database.
+            </p>
+
+            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+              <p class="text-green-800 text-sm">
+                <i class="fas fa-info-circle mr-2"></i>For detailed setup
+                instructions, check the
+                <a
+                  href="https://github.com/Ar-jun-fs9/api-rate-limiter"
+                  target="_blank"
+                  class="font-semibold underline"
+                  >GitHub README</a
+                >.
+              </p>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-            <div class="env-section">
-                <h3>🔍 Manual Verification</h3>
-                <p style="color: var(--text-muted); margin-bottom: 16px;">How to manually verify the rate limiter is working:</p>
-                
-                <div class="test-steps">
-                    <div class="test-step">
-                        <div class="step-num">✓</div>
-                        <div class="step-content">
-                            <h4>Without API Key</h4>
-                            <p>Send a request without X-API-Key header. Expected: <span class="badge error">401 {"detail": "API key required"}</span></p>
-                        </div>
-                    </div>
-                    <div class="test-step">
-                        <div class="step-num">✓</div>
-                        <div class="step-content">
-                            <h4>With Invalid API Key</h4>
-                            <p>Send a request with a fake UUID. Expected: <span class="badge error">401 {"detail": "Invalid API key"}</span></p>
-                        </div>
-                    </div>
-                    <div class="test-step">
-                        <div class="step-num">✓</div>
-                        <div class="step-content">
-                            <h4>Successful Request</h4>
-                            <p>With valid key under limit. Expected: <span class="badge success">200 + X-RateLimit-Limit, X-RateLimit-Remaining headers</span></p>
-                        </div>
-                    </div>
-                    <div class="test-step">
-                        <div class="step-num">✓</div>
-                        <div class="step-content">
-                            <h4>Rate Limit Exceeded</h4>
-                            <p>Make more than the allowed requests. Expected: <span class="badge error">429 {"detail": "Rate limit exceeded"}</span></p>
-                        </div>
-                    </div>
-                </div>
+    <!-- Footer -->
+    <footer class="bg-green-900 text-white py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-10">
+          <div>
+            <div class="flex items-center mb-5">
+              <div
+                class="w-12 h-12 bg-white rounded-lg flex items-center justify-center"
+              >
+                <i class="fas fa-stopwatch text-green-900 text-xl"></i>
+              </div>
+              <div class="ml-4">
+                <h1 class="text-xl font-bold text-white">API Rate Limiter</h1>
+              </div>
             </div>
-        </section>
+            <p class="text-green-200 leading-relaxed text-sm">
+              Production-ready rate limiting system with per-key and
+              per-endpoint controls.
+            </p>
+          </div>
 
-        <div class="divider"></div>
+          <div>
+            <h3 class="text-lg font-semibold mb-5 text-white">Quick Links</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="https://api-rate-limiter-lo1o.onrender.com/"
+                  target="_blank"
+                  class="text-green-200 hover:text-white transition-colors duration-200 text-sm"
+                  >Live Demo</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://api-rate-limiter-lo1o.onrender.com/admin/"
+                  target="_blank"
+                  class="text-green-200 hover:text-white transition-colors duration-200 text-sm"
+                  >Admin Panel</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/Ar-jun-fs9/api-rate-limiter"
+                  target="_blank"
+                  class="text-green-200 hover:text-white transition-colors duration-200 text-sm"
+                  >GitHub</a
+                >
+              </li>
+            </ul>
+          </div>
 
-        <section>
-            <h2 class="section-title">Use Cases</h2>
-            <div class="grid">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">🏢</div>
-                        <div class="card-title">SaaS Applications</div>
-                    </div>
-                    <p>Control API usage for different subscription tiers. Free tier gets 100 req/min, Pro gets 1000 req/min, Enterprise gets unlimited access.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">🤖</div>
-                        <div class="card-title">Bot Protection</div>
-                    </div>
-                    <p>Prevent aggressive scraping or bot abuse by limiting request rates per client. Protects your backend services from overload.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">📱</div>
-                        <div class="card-title">Mobile Apps</div>
-                    </div>
-                    <p>Throttle API calls from mobile clients to reduce server load and prevent abuse. Track per-device usage with unique keys.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">🔗</div>
-                        <div class="card-title">Third-Party Integrations</div>
-                    </div>
-                    <p>Give external partners limited API access with custom rate limits. Revoke keys instantly if abuse is detected.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">🧪</div>
-                        <div class="card-title">Testing & Development</div>
-                    </div>
-                    <p>Use rate limiting in staging environments to simulate production conditions. Test how your client handles 429 responses.</p>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">⚖️</div>
-                        <div class="card-title">API Monetization</div>
-                    </div>
-                    <p>Offer paid API access with tiered rate limits. Charge based on allowed requests per minute.</p>
-                </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-5 text-white">Deployments</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="https://api-rate-limiter-lo1o.onrender.com/"
+                  target="_blank"
+                  class="text-green-200 hover:text-white transition-colors duration-200 text-sm"
+                  >Render (Live)</a
+                >
+              </li>
+              <li>
+                <a
+                  href="http://127.0.0.1:8000/"
+                  class="text-green-200 hover:text-white transition-colors duration-200 text-sm"
+                  >Localhost</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold mb-5 text-white">Tech Stack</h3>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 bg-green-800 rounded-full text-xs"
+                >Django</span
+              >
+              <span class="px-3 py-1 bg-green-800 rounded-full text-xs"
+                >DRF</span
+              >
+              <span class="px-3 py-1 bg-green-800 rounded-full text-xs"
+                >Redis</span
+              >
+              <span class="px-3 py-1 bg-green-800 rounded-full text-xs"
+                >Upstash</span
+              >
+              <span class="px-3 py-1 bg-green-800 rounded-full text-xs"
+                >Render</span
+              >
             </div>
-        </section>
+          </div>
+        </div>
 
-        <section>
-            <h2 class="section-title">Configuration</h2>
-            
-            <div class="env-section">
-                <h3>🔧 Environment Variables</h3>
-                <p style="color: var(--text-muted); margin-bottom: 16px;">Create a <code style="color: var(--accent);">.env</code> file in the project root:</p>
-                <div class="env-box">
-                    <code><span class="comment"># Upstash Redis connection string</span>
-<span class="key">REDIS_URL</span>=<span class="value">rediss://default:password@your-instance.upstash.io:6379</span></code>
-                </div>
-                <p style="color: var(--text-muted); margin-top: 16px;">Get your Redis URL from the <a href="https://upstash.com" target="_blank" style="color: var(--primary-light);">Upstash Console</a>.</p>
-            </div>
-
-            <div class="env-section">
-                <h3>🔐 Creating API Keys</h3>
-                <div class="test-steps">
-                    <div class="test-step">
-                        <div class="step-num">1</div>
-                        <div class="step-content">
-                            <h4>Run migrations</h4>
-                            <p><code style="color: var(--accent);">python manage.py migrate</code></p>
-                        </div>
-                    </div>
-                    <div class="test-step">
-                        <div class="step-num">2</div>
-                        <div class="step-content">
-                            <h4>Create superuser</h4>
-                            <p><code style="color: var(--accent);">python manage.py createsuperuser</code></p>
-                        </div>
-                    </div>
-                    <div class="test-step">
-                        <div class="step-num">3</div>
-                        <div class="step-content">
-                            <h4>Access Django Admin</h4>
-                            <p>Local: <code style="color: var(--accent);">http://127.0.0.1:8000/admin</code><br>Render: <code style="color: var(--accent);">https://api-rate-limiter-lo1o.onrender.com/admin</code></p>
-                        </div>
-                    </div>
-                    <div class="test-step">
-                        <div class="step-num">4</div>
-                        <div class="step-content">
-                            <h4>Create API Key</h4>
-                            <p>Navigate to API Keys section, add new key with owner name. Copy the generated UUID to use in requests.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <footer>
-        <p>Built with Django + Django REST Framework + Redis</p>
-        <p style="margin-top: 8px;"><a href="https://github.com/Ar-jun-fs9/api-rate-limiter" target="_blank">View on GitHub</a> · <a href="https://api-rate-limiter-lo1o.onrender.com/admin" target="_blank">Live Admin</a></p>
-        <p style="margin-top: 16px; opacity: 0.6;">&copy; 2026 API Rate Limiter Project</p>
+        <div class="border-t border-green-700 mt-12 pt-8 text-center">
+          <p class="text-green-200 text-sm">
+            &copy; 2026 API Rate Limiter Project |
+            <span class="text-white font-medium">Built by A.B</span>
+          </p>
+        </div>
+      </div>
     </footer>
-</body>
+  </body>
 </html>
