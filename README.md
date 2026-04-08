@@ -10,7 +10,7 @@
 
 A production-ready API rate limiting system built with Django and Redis. Enforce per-API-key and per-endpoint request limits with real-time quota tracking.
 
-**[Live Demo](https://api-rate-limiter-lo1o.onrender.com/)** · **[Local Development](#local-setup)** · **[API Documentation](#endpoints)** · **[Use Cases](#use-cases)**
+**[Live Demo](https://api-rate-limiter-z3sj.onrender.com/)** · **[Local Development](#local-setup)** · **[API Documentation](#endpoints)** · **[Use Cases](#use-cases)**
 
 </div>
 
@@ -22,15 +22,15 @@ A production-ready API rate limiting system built with Django and Redis. Enforce
 
 | Deployment | URL | Admin Panel |
 |------------|-----|-------------|
-| **Render** | https://api-rate-limiter-lo1o.onrender.com/ | https://api-rate-limiter-lo1o.onrender.com/admin |
+| **Render** | https://api-rate-limiter-z3sj.onrender.com/ | https://api-rate-limiter-z3sj.onrender.com/admin |
 | **Local** | http://127.0.0.1:8000/ | http://127.0.0.1:8000/admin |
 
 ```bash
 # Test the live API
-curl -H "X-API-Key: YOUR_API_KEY" https://api-rate-limiter-lo1o.onrender.com/api/test/
+curl -H "X-API-Key: YOUR_API_KEY" https://api-rate-limiter-z3sj.onrender.com/api/test/
 
 # Check rate limit headers
-curl -i -H "X-API-Key: YOUR_API_KEY" https://api-rate-limiter-lo1o.onrender.com/api/test/
+curl -i -H "X-API-Key: YOUR_API_KEY" https://api-rate-limiter-z3sj.onrender.com/api/test/
 ```
 
 ---
@@ -97,7 +97,7 @@ This is a complete API rate limiting solution that:
 
 | Environment | Base URL | Best For |
 |------------|----------|----------|
-| **Render (Live)** | https://api-rate-limiter-lo1o.onrender.com | Quick testing, demos, sharing with team |
+| **Render (Live)** | https://api-rate-limiter-z3sj.onrender.com | Quick testing, demos, sharing with team |
 | **Localhost** | http://127.0.0.1:8000 | Development, debugging, custom changes |
 
 ### Testing Each Version
@@ -105,12 +105,12 @@ This is a complete API rate limiting solution that:
 **Live Demo (Render):**
 ```bash
 # Test endpoint
-curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-lo1o.onrender.com/api/test/
+curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-z3sj.onrender.com/api/test/
 
 # All endpoints
-curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-lo1o.onrender.com/api/hello/
-curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-lo1o.onrender.com/api/login/
-curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-lo1o.onrender.com/api/purchase/
+curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-z3sj.onrender.com/api/hello/
+curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-z3sj.onrender.com/api/login/
+curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-z3sj.onrender.com/api/purchase/
 ```
 
 **Local Development:**
@@ -167,7 +167,7 @@ X-RateLimit-Remaining: 8
 1. **Create new request** - Select GET method
 2. **Enter URL:**
    - Local: `http://127.0.0.1:8000/api/test/`
-   - Render: `https://api-rate-limiter-lo1o.onrender.com/api/test/`
+   - Render: `https://api-rate-limiter-z3sj.onrender.com/api/test/`
 3. **Add Headers:**
    ```
    Key: X-API-Key
@@ -191,7 +191,7 @@ for i in {1..12}; do curl -s -H "X-API-Key: YOUR_API_KEY" http://127.0.0.1:8000/
 
 ### Method 3: Browser
 
-1. Visit: `https://api-rate-limiter-lo1o.onrender.com/`
+1. Visit: `https://api-rate-limiter-z3sj.onrender.com/`
 2. You'll see the landing page with all documentation
 3. To test endpoints, use Postman/cURL with your API key
 
