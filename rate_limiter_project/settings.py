@@ -9,7 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-8glil8xa^e!zppxqcuf*c&%*d$i9*%6f*hagu7rhhk8)*zv%s9"
 DEBUG = True
-ALLOWED_HOSTS = ["api-rate-limiter-z3sj.onrender.com", "localhost", "127.0.0.1"]
+# ALLOWED_HOSTS = ["api-rate-limiter-z3sj.onrender.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     "django.contrib.admin",
