@@ -8,25 +8,34 @@
 [![Redis](https://img.shields.io/badge/Redis-Cache%20Backend-red.svg)](https://redis.io/)
 [![Upstash](https://img.shields.io/badge/Upstash-Redis%20Cloud-yellow.svg)](https://upstash.com)
 
-A Django REST framework-based API rate limiting system that enforces per-API-key and per-endpoint request limits using Redis (Upstash) for distributed rate tracking.
+A production-ready API rate limiting system built with Django and Redis. Enforce per-API-key and per-endpoint request limits with real-time quota tracking.
+
+**[Live Demo](https://api-rate-limiter-lo1o.onrender.com/)** · **[Local Development](#local-setup)** · **[API Documentation](#endpoints)** · **[Use Cases](#use-cases)**
 
 </div>
 
-## Overview
+---
 
-This project implements rate limiting at the API level with:
+## Quick Start
 
-- **Per-API Key Limiting**: Each API key has its own request counter
-- **Per-Endpoint Limiting**: Different endpoints can have different rate limits
-- **Redis Backend**: Uses Upstash Redis for fast, distributed rate tracking
-- **Response Headers**: Returns `X-RateLimit-Limit` and `X-RateLimit-Remaining` headers
-- **Landing Page**: `home.html` as project welcome page available at `/`
+### Live Demo (No Setup Required)
 
-You can check the project online at: [https://api-rate-limiter-lo1o.onrender.com/](https://api-rate-limiter-lo1o.onrender.com/)
+| Deployment | URL | Admin Panel |
+|------------|-----|-------------|
+| **Render** | https://api-rate-limiter-lo1o.onrender.com/ | https://api-rate-limiter-lo1o.onrender.com/admin |
+| **Local** | http://127.0.0.1:8000/ | http://127.0.0.1:8000/admin |
+
+```bash
+# Test the live API
+curl -H "X-API-Key: YOUR_API_KEY" https://api-rate-limiter-lo1o.onrender.com/api/test/
+
+# Check rate limit headers
+curl -i -H "X-API-Key: YOUR_API_KEY" https://api-rate-limiter-lo1o.onrender.com/api/test/
+```
 
 ---
 
-## API Rate Limiter Screenshots
+## Screenshots
 
 The following images show the API rate limiter in action, from initial requests to rate limiting responses.
 
@@ -68,6 +77,156 @@ The following images show the API rate limiter in action, from initial requests 
 |-------------------------------|
 | Redis showing per-API-key counters |
 
+---
+
+## What is this project?
+
+This is a complete API rate limiting solution that:
+
+- **Per-API Key Limits** - Each client gets their own rate quota
+- **Per-Endpoint Limits** - Different endpoints have different limits (10-20 req/min)
+- **Redis Backend** - Fast distributed rate tracking with Upstash
+- **Response Headers** - Every response includes `X-RateLimit-Limit` and `X-RateLimit-Remaining`
+- **Landing Page** - Beautiful homepage at `/` with documentation
+
+---
+
+## Live Demo vs Local
+
+### Available Deployments
+
+| Environment | Base URL | Best For |
+|------------|----------|----------|
+| **Render (Live)** | https://api-rate-limiter-lo1o.onrender.com | Quick testing, demos, sharing with team |
+| **Localhost** | http://127.0.0.1:8000 | Development, debugging, custom changes |
+
+### Testing Each Version
+
+**Live Demo (Render):**
+```bash
+# Test endpoint
+curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-lo1o.onrender.com/api/test/
+
+# All endpoints
+curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-lo1o.onrender.com/api/hello/
+curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-lo1o.onrender.com/api/login/
+curl -H "X-API-Key: YOUR_KEY" https://api-rate-limiter-lo1o.onrender.com/api/purchase/
+```
+
+**Local Development:**
+```bash
+# Start server
+python manage.py runserver
+
+# Test endpoint
+curl -H "X-API-Key: YOUR_KEY" http://127.0.0.1:8000/api/test/
+
+# Access admin
+http://127.0.0.1:8000/admin
+```
+
+### When to Use Which?
+
+- **Use Live Demo when:** You want to quickly test the API without any setup, share with teammates, or integrate with external services
+- **Use Local when:** You need to modify code, debug issues, add features, or test with your own Redis instance
+
+---
+
+## Endpoints
+
+| Endpoint | Rate Limit | Method | Description |
+|----------|------------|--------|-------------|
+| `/api/test/` | 10/min | GET | Test endpoint |
+| `/api/hello/` | 10/min | GET | Hello endpoint |
+| `/api/profile/` | 10/min | GET | Profile endpoint |
+| `/api/login/` | 20/min | GET | Login endpoint (higher limit) |
+| `/api/purchase/` | 15/min | GET | Purchase endpoint |
+
+### Response Headers
+
+Every successful response includes:
+```
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 8
+```
+
+### Error Responses
+
+| Status | Error | Cause |
+|--------|-------|-------|
+| 401 | `{"detail": "API key required"}` | Missing X-API-Key header |
+| 401 | `{"detail": "Invalid API key"}` | Invalid or non-existent key |
+| 429 | `{"detail": "Rate limit exceeded"}` | Quota exceeded |
+
+---
+
+## How to Test
+
+### Method 1: Postman (Recommended)
+
+1. **Create new request** - Select GET method
+2. **Enter URL:**
+   - Local: `http://127.0.0.1:8000/api/test/`
+   - Render: `https://api-rate-limiter-lo1o.onrender.com/api/test/`
+3. **Add Headers:**
+   ```
+   Key: X-API-Key
+   Value: YOUR_API_KEY_UUID (from admin)
+   ```
+4. **Send request** - Check response body and headers
+5. **Verify rate limiting** - Send 10+ requests to see 429 response
+
+### Method 2: cURL
+
+```bash
+# Basic request
+curl -H "X-API-Key: YOUR_API_KEY" http://127.0.0.1:8000/api/test/
+
+# With headers
+curl -i -H "X-API-Key: YOUR_API_KEY" http://127.0.0.1:8000/api/test/
+
+# Test rate limit (loop)
+for i in {1..12}; do curl -s -H "X-API-Key: YOUR_API_KEY" http://127.0.0.1:8000/api/test/; echo; done
+```
+
+### Method 3: Browser
+
+1. Visit: `https://api-rate-limiter-lo1o.onrender.com/`
+2. You'll see the landing page with all documentation
+3. To test endpoints, use Postman/cURL with your API key
+
+### Manual Verification Checklist
+
+- [ ] **No API Key** → Returns 401 "API key required"
+- [ ] **Invalid API Key** → Returns 401 "Invalid API key"  
+- [ ] **Valid Key** → Returns 200 with `X-RateLimit-*` headers
+- [ ] **Over Limit** → Returns 429 "Rate limit exceeded"
+- [ ] **After 60s** → Counter resets, can make requests again
+
+---
+
+## Use Cases
+
+### 1. SaaS Applications
+Rate limit by subscription tier. Free users get 100 req/min, Pro users get 1000 req/min, Enterprise gets unlimited access.
+
+### 2. Bot & Scraping Protection
+Prevent aggressive crawling by limiting requests per client. Stops accidental or malicious overload of your services.
+
+### 3. Mobile Applications
+Throttle API calls from iOS/Android apps. Each device gets a unique API key to track and control usage.
+
+### 4. Third-Party Integrations
+Provide limited API access to partners. Create separate keys with custom limits, revoke instantly if abuse occurs.
+
+### 5. Testing & Staging
+Simulate production rate limiting in staging. Test how your client handles 429 responses and header parsing.
+
+### 6. API Monetization
+Sell API access with tiered rate limits. Higher tiers = more requests per minute.
+
+---
+
 ## Architecture
 
 ```
@@ -87,162 +246,44 @@ The following images show the API rate limiter in action, from initial requests 
                                           └──────────────────┘
 ```
 
+### Request Flow
+
+1. Request arrives with `X-API-Key` header
+2. Validate API key exists in database
+3. Check Redis for current request count
+4. If under limit: increment counter, return success
+5. If at limit: return 429 Too Many Requests
+6. Response includes quota headers
+
+---
+
 ## Project Structure
 
 ```
 api_rate_limiter/
 ├── api/                           # Main API application
-│   ├── models.py                  # APIKey model definition
-│   ├── views.py                   # API endpoints with rate limiting
-│   ├── rate_limit.py              # Core rate limiting logic (custom)
-│   ├── urls.py                    # URL routing for endpoints
-│   ├── serializers.py             # DRF serializers for APIKey
-│   ├── admin.py                   # Django admin configuration
-│   └── migrations/                # Database migrations
-├── rate_limiter_project/          # Django project settings
-│   ├── settings.py                # Project configuration (Redis)
-│   ├── urls.py                    # Root URL configuration
-│   ├── wsgi.py                    # WSGI entry point
-│   └── asgi.py                    # ASGI entry point
-├── .env                           # Environment variables (Redis URL)
-├── requirements.txt               # Python dependencies
-└── manage.py                      # Django management script
+│   ├── models.py                  # APIKey model (UUID-based)
+│   ├── views.py                   # All rate-limited endpoints
+│   ├── rate_limit.py              # Core rate limiting logic
+│   ├── urls.py                    # URL routing
+│   ├── serializers.py            # DRF serializers
+│   ├── admin.py                  # Django admin config
+│   ├── templates/
+│   │   └── home.html            # Landing page
+│   └── migrations/
+├── rate_limiter_project/          # Django project
+│   ├── settings.py               # Redis & app config
+│   ├── urls.py                   # Root URLs
+│   ├── wsgi.py                   # Production entry
+│   └── asgi.py
+├── .env                           # Environment variables
+├── requirements.txt               # Dependencies
+└── manage.py
 ```
 
-## Custom Components
+---
 
-### `api/rate_limit.py` - Rate Limiting Core
-
-This module contains the custom rate limiting implementation:
-
-- **`RateLimitedAPIView`**: Base class that all rate-limited views inherit from
-  - `max_requests`: Class attribute defining requests allowed per minute (default: 10)
-  - `expiry_seconds`: TTL for Redis keys (default: 60 seconds)
-  - `get_redis_key(api_key)`: Generates Redis key in format `rate_limit:{api_key}:{class_name}`
-  - `check_rate_limit(api_key)`: Queries Redis, increments counter, enforces limit
-  - `check_api_key_and_rate_limit(request)`: Validates X-API-Key header and checks rate
-  - `handle_request(request, message)`: Centralized response handling with headers
-
-- **`RateLimited10APIView`**: Subclass with 10 requests/minute limit
-
-### `api/models.py` - APIKey Model
-
-Django model for storing API keys:
-
-```python
-class APIKey(models.Model):
-    key = models.UUIDField(default=uuid.uuid4, unique=True)  # Generated UUID
-    owner = models.CharField(max_length=100)                 # Owner identifier
-    max_requests_per_minute = models.IntegerField(default=10)
-    created_at = models.DateTimeField(auto_now_add=True)
-```
-
-- Used to validate incoming API keys from the database
-- The `key` field stores the UUID used in the X-API-Key header
-
-### `api/views.py` - API Endpoints
-
-All views inherit from rate limiting classes and implement GET handlers:
-
-| View Class | Endpoint | Rate Limit | Purpose |
-|------------|----------|-------------|---------|
-| `TestAPIView` | `/api/test/` | 10 req/min | Test endpoint |
-| `HelloAPIView` | `/api/hello/` | 10 req/min | Hello endpoint |
-| `ProfileAPIView` | `/api/profile/` | 10 req/min | Profile endpoint |
-| `LoginAPIView` | `/api/login/` | 20 req/min | Login endpoint |
-| `PurchaseAPIView` | `/api/purchase/` | 15 req/min | Purchase endpoint |
-
-Each view:
-1. Extends `RateLimited10APIView` or `RateLimitedAPIView` with custom `max_requests`
-2. Implements `get(self, request)` method
-3. Calls `self.handle_request(request, message)` which performs:
-   - API key validation
-   - Rate limit checking
-   - Returns JSON response with appropriate headers
-
-### `api/urls.py` - URL Routing
-
-Routes incoming requests to the appropriate view:
-
-```python
-urlpatterns = [
-    path('test/', TestAPIView.as_view(), name='test-api'),
-    path('hello/', HelloAPIView.as_view(), name='hello-api'),
-    path('login/', LoginAPIView.as_view(), name='login-api'),
-    path('purchase/', PurchaseAPIView.as_view(), name='purchase-api'),
-    path('profile/', ProfileAPIView.as_view(), name='profile-api'),
-]
-```
-
-### `api/serializers.py` - APIKey Serializer
-
-DRF serializer for the APIKey model, exposing:
-- `owner`
-- `key`
-- `max_requests_per_minute`
-- `created_at`
-
-### `api/admin.py` - Django Admin
-
-Configures the Django admin interface for APIKey management with:
-- `list_display`: Shows owner, key, max_requests_per_minute, created_at
-- `readonly_fields`: key and created_at are read-only
-
-### `rate_limiter_project/settings.py` - Configuration
-
-Key custom settings:
-
-```python
-# Redis (Upstash) configuration
-REDIS_URL = os.getenv("REDIS_URL")  # From .env file
-
-# Django cache backend using Redis
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL + "/0",
-    }
-}
-```
-
-## Rate Limiting Flow
-
-1. **Request arrives** with `X-API-Key` header
-2. **`check_api_key_and_rate_limit`** validates:
-   - API key is present in header
-   - API key exists in database (APIKey model)
-3. **Redis lookup** using key format: `rate_limit:{api_key}:{endpoint_class}`
-4. **If no key exists**: Initialize counter to 1, set 60-second TTL
-5. **If key exists**: Increment counter, check against `max_requests`
-6. **If limit exceeded**: Return 429 response
-7. **On success**: Return response with headers:
-   - `X-RateLimit-Limit`: Maximum requests allowed
-   - `X-RateLimit-Remaining`: Remaining requests in window
-
-## Endpoints Reference
-
-| Method | Endpoint | Limit | Response |
-|--------|----------|-------|----------|
-| GET | `/api/test/` | 10/min | `{"message": "Test API Success"}` |
-| GET | `/api/hello/` | 10/min | `{"message": "Hello API Success"}` |
-| GET | `/api/profile/` | 10/min | `{"message": "Profile API Success"}` |
-| GET | `/api/login/` | 20/min | `{"message": "Login API Success"}` |
-| GET | `/api/purchase/` | 15/min | `{"message": "Purchase API Success"}` |
-
-### Error Responses
-
-- **401 Unauthorized** (Missing key): `{"detail": "API key required"}`
-- **401 Unauthorized** (Invalid key): `{"detail": "Invalid API key"}`
-- **429 Too Many Requests**: `{"detail": "Rate limit exceeded"}`
-
-### Success Response Headers
-
-```
-X-RateLimit-Limit: 10
-X-RateLimit-Remaining: 8
-```
-
-## Setup Instructions
+## Local Setup
 
 ### Prerequisites
 
@@ -250,164 +291,90 @@ X-RateLimit-Remaining: 8
 - Upstash Redis account (free tier works)
 - Django 6.0+
 
-### 1. Clone and Setup Virtual Environment
+### Step-by-Step
 
 ```bash
+# 1. Clone repository
 git clone https://github.com/Ar-jun-fs9/api-rate-limiter.git
 cd api_rate_limiter
+
+# 2. Create virtual environment
 python -m venv api_venv
-source api_venv/bin/activate  # Linux/Mac
-# or
-api_venv\Scripts\activate  # Windows
-```
 
-### 2. Install Dependencies
+# 3. Activate (Windows)
+api_venv\Scripts\activate
 
-```bash
+# 3. Activate (Mac/Linux)
+source api_venv/bin/activate
+
+# 4. Install dependencies
 pip install -r requirements.txt
-```
 
-### 3. Configure Upstash Redis
+# 5. Configure Redis
+# Go to https://upstash.com, create database
+# Add to .env file:
+# REDIS_URL="rediss://default:YOUR_PASSWORD@your-instance.upstash.io:6379"
 
-1. Create a free account at [upstash.com](https://upstash.com)
-2. Create a new Redis database
-3. Copy the `REDIS_URL` (should be `rediss://...`)
-4. Update `.env` file:
-
-```
-REDIS_URL="rediss://default:YOUR_PASSWORD@your-instance.upstash.io:6379"
-```
-
-### 4. Run Migrations
-
-```bash
+# 6. Run migrations
 python manage.py migrate
-```
 
-### 5. Create an API Key
+# 7. Create admin user
+python manage.py createsuperuser
+# Follow prompts to create username/password
 
-Access Django admin at `http://localhost:8000/admin`:
-1. Create a superuser: `python manage.py createsuperuser`
-2. Navigate to API Keys section
-3. Create a new APIKey with an owner name
-4. Copy the generated UUID key
-
-### 6. Run the Server
-
-```bash
+# 8. Start server
 python manage.py runserver
+
+# 9. Access
+# - API: http://127.0.0.1:8000/api/test/
+# - Admin: http://127.0.0.1:8000/admin
 ```
 
-## Testing the Rate Limiter
+### Creating API Keys
 
-### Using cURL
+1. Visit http://127.0.0.1:8000/admin
+2. Login with superuser credentials
+3. Go to "API Keys" section
+4. Click "Add API Key"
+5. Enter owner name (e.g., "test-client")
+6. Optionally set custom rate limit
+7. Save and copy the UUID key
 
-```bash
-# Replace YOUR_API_KEY with the UUID from admin
-export API_KEY="your-api-key-uuid"
+---
 
-# Make requests (up to limit)
-curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/test/
-curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/hello/
+### Environment Variables on Render
 
-# Check response headers
-curl -i -H "X-API-Key: $API_KEY" http://localhost:8000/api/test/
+| Variable | Value | Description |
+|----------|-------|-------------|
+| `REDIS_URL` | `rediss://...` | Upstash Redis connection |
+| `PYTHON_VERSION` | `3.11` | Python version |
+
+---
+
+## Configuration
+
+### Changing Rate Limits
+
+In `api/views.py`:
+
+```python
+class MyAPIView(RateLimitedAPIView):
+    max_requests = 50  # Change this value
+    def get(self, request):
+        return self.handle_request(request, message="Custom endpoint")
 ```
 
-### Expected Responses
+### Changing Redis TTL
 
-**Success:**
-```json
-{"message": "Test API Success"}
-```
-With headers:
-```
-X-RateLimit-Limit: 10
-X-RateLimit-Remaining: 9
+In `api/rate_limit.py`:
+
+```python
+class RateLimitedAPIView(APIView):
+    max_requests = 10
+    expiry_seconds = 60  # Change time window (seconds)
 ```
 
-**Rate Limit Exceeded:**
-```json
-{"detail": "Rate limit exceeded"}
-```
-
-**Missing API Key:**
-```json
-{"detail": "API key required"}
-```
-
-**Invalid API Key:**
-```json
-{"detail": "Invalid API key"}
-```
-
-# Testing API with Postman
-
-Follow these steps to test your API endpoint using Postman.
-
-1. **Create a new request in Postman**
-   - Set **method** to `GET`.
-   - Set **URL** to:
-     ```
-     http://localhost:8000/api/test/
-     ```
-
-2. **Add Headers**
-   | Key       | Value               |
-   |-----------|-------------------|
-   | X-API-Key | your-api-key-uuid |
-
-3. **Send the request**
-   - Click **Send**.
-   - Observe response and headers:
-     ```
-     X-RateLimit-Limit
-     X-RateLimit-Remaining
-     ```
-   - Repeat to test rate limiting.
-
-4. **Expected Responses**
-
-   - **Success**
-     ```json
-     {
-       "message": "Test API Success"
-     }
-     ```
-
-   - **Rate Limit Exceeded**
-     ```json
-     {
-       "detail": "Rate limit exceeded"
-     }
-     ```
-
-   - **Missing API Key**
-     ```json
-     {
-       "detail": "API key required"
-     }
-     ```
-
-   - **Invalid API Key**
-     ```json
-     {
-       "detail": "Invalid API key"
-     }
-     ```
-
-### Test Script Example
-
-```bash
-#!/bin/bash
-API_KEY="your-api-key-here"
-
-for i in {1..12}; do
-    echo "Request $i:"
-    curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/api/test/ | jq
-    echo "---"
-done
-```
+---
 
 ## Dependencies
 
@@ -424,15 +391,25 @@ tzdata==2026.1
 gunicorn==25.3.0
 ```
 
-## Production Considerations
+---
 
-1. **Change SECRET_KEY** in settings.py
-2. **Configure ALLOWED_HOSTS** for your domain
-3. **Use HTTPS** for production
-4. **Monitor Redis usage** in Upstash dashboard
-5. **Consider sliding window** algorithm for smoother limiting
-6. **Add logging** for rate limit events
+
+## Production Checklist
+
+Before deploying to production:
+
+- [ ] Change `SECRET_KEY` in settings.py
+- [ ] Configure `ALLOWED_HOSTS` for your domain
+- [ ] Use HTTPS (automatic on Render)
+- [ ] Set `DEBUG=False` in production
+- [ ] Monitor Redis usage in Upstash dashboard
+- [ ] Add logging for rate limit events
+- [ ] Set up proper backup for Redis data
+
+---
 
 ## License
 
-MIT License
+MIT License - Feel free to use this for your projects.
+
+---
