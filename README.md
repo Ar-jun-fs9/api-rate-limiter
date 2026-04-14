@@ -413,3 +413,8 @@ Before deploying to production:
 MIT License - Feel free to use this for your projects.
 
 ---
+<div align="center">
+
+**[⬆ Back to Top](#-api-rate-limiter)**
+
+</div>
