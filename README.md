@@ -2,6 +2,14 @@
 
 # API Rate Limiter
 
+
+<p align="center">
+  <a href="https://api-rate-limiter-z3sj.onrender.com/">
+    🌐 Live Demo
+  </a>
+</p>
+
+
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![Django](https://img.shields.io/badge/Django-Web%20Framework-green.svg)](https://www.djangoproject.com/)
 [![Django REST Framework](https://img.shields.io/badge/DRF-REST%20Framework-blueviolet.svg)](https://www.django-rest-framework.org/)
