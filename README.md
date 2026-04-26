@@ -18,7 +18,7 @@
 
 A production-ready API rate limiting system built with Django and Redis. Enforce per-API-key and per-endpoint request limits with real-time quota tracking.
 
-**[Live Demo](https://api-rate-limiter-z3sj.onrender.com/)** · **[Local Development](#local-setup)** · **[API Documentation](#endpoints)** · **[Use Cases](#use-cases)**
+**[Local Development](#local-setup)** · **[API Documentation](#endpoints)** · **[Use Cases](#use-cases)**
 
 </div>
 
