@@ -406,7 +406,7 @@ gunicorn==25.3.0
 
 Before deploying to production:
 
-- [ ] Change `SECRET_KEY` in settings.py
+-  Change `SECRET_KEY` in settings.py
 - [ ] Configure `ALLOWED_HOSTS` for your domain
 - [ ] Use HTTPS (automatic on Render)
 - [ ] Set `DEBUG=False` in production
